@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "494288787271",
+    "project_id": "diet-quest-app",
+    "storage_bucket": "diet-quest-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494288787271:android:0065669c09dcd12517de62",
+        "android_client_info": {
+          "package_name": "com.example.diet_quest_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZs-pU15Undcc0YfW5OE4MnGPOf5pwb0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

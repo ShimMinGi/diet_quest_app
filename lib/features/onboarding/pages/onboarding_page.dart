@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/data/models/user_profile_model.dart';
+import 'package:diet_quest_app/data/services/user_service.dart';
 import 'package:diet_quest_app/features/dashboard/pages/dashboard_page.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -15,7 +16,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final startWeightController = TextEditingController();
   final goalWeightController = TextEditingController();
 
+  final UserService _userService = UserService();
+
   String selectedGender = '남성';
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -26,7 +30,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     super.dispose();
   }
 
-  void _completeOnboarding() {
+  Future<void> _completeOnboarding() async {
     final name = nameController.text.trim();
     final height = double.tryParse(heightController.text.trim()) ?? 0;
     final startWeight = double.tryParse(startWeightController.text.trim()) ?? 0;
@@ -40,12 +44,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
       goalWeight: goalWeight,
     );
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DashboardPage(userProfile: userProfile),
-      ),
-    );
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      await _userService.saveUserProfile(userProfile);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DashboardPage(userProfile: userProfile),
+        ),
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('온보딩 저장 실패: $e')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -122,8 +147,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _completeOnboarding,
-              child: const Text('완료'),
+              onPressed: isLoading ? null : _completeOnboarding,
+              child: Text(isLoading ? '저장 중...' : '완료'),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/core/router/app_router.dart';
 
@@ -19,7 +20,14 @@ class _SplashPageState extends State<SplashPage> {
   void _moveNext() {
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, AppRouter.login);
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        Navigator.pushReplacementNamed(context, AppRouter.login);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRouter.onboarding);
+      }
     });
   }
 

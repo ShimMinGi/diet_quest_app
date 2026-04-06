@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:diet_quest_app/core/router/app_router.dart';
 import 'package:diet_quest_app/data/models/user_profile_model.dart';
 import 'package:diet_quest_app/data/services/app_state.dart';
+
+class AppStateLogoutHelper {
+  static Future<void> signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+
+    if (!context.mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRouter.login,
+      (route) => false,
+    );
+  }
+}
 
 class DashboardPage extends StatelessWidget {
   final UserProfileModel? userProfile;
@@ -98,6 +112,14 @@ class DashboardPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('대시보드'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await AppStateLogoutHelper.signOut(context);
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
