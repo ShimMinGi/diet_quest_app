@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/data/services/app_state.dart';
+import 'package:diet_quest_app/data/services/daily_record_service.dart';
 
 class DailyRecordPage extends StatefulWidget {
   const DailyRecordPage({super.key});
@@ -15,7 +16,10 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
   final thighController = TextEditingController();
   final calorieController = TextEditingController();
 
+  final DailyRecordService _dailyRecordService = DailyRecordService();
+
   bool isPeriod = false;
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -27,7 +31,7 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
     super.dispose();
   }
 
-  void _saveRecord() {
+  Future<void> _saveRecord() async {
     final weight = double.tryParse(weightController.text.trim()) ?? 0;
     final calories = double.tryParse(calorieController.text.trim()) ?? 0;
     final waist = double.tryParse(waistController.text.trim());
@@ -38,9 +42,12 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
     final date =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
-    AppState.dailyRecords.insert(
-      0,
-      DailyRecordItem(
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      await _dailyRecordService.saveDailyRecord(
         date: date,
         weight: weight,
         calories: calories,
@@ -48,16 +55,44 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
         arm: arm,
         thigh: thigh,
         isPeriod: isPeriod,
-      ),
-    );
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('일일 기록이 저장되었습니다.'),
-      ),
-    );
+      AppState.dailyRecords.insert(
+        0,
+        DailyRecordItem(
+          date: date,
+          weight: weight,
+          calories: calories,
+          waist: waist,
+          arm: arm,
+          thigh: thigh,
+          isPeriod: isPeriod,
+        ),
+      );
 
-    Navigator.pop(context);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('일일 기록이 저장되었습니다.'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } on Exception catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('일일 기록 저장 실패: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Widget _buildNumberField({
@@ -133,8 +168,8 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _saveRecord,
-              child: const Text('저장'),
+              onPressed: isLoading ? null : _saveRecord,
+              child: Text(isLoading ? '저장 중...' : '저장'),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/data/services/app_state.dart';
+import 'package:diet_quest_app/data/services/meal_record_service.dart';
 
 class MealRecordPage extends StatefulWidget {
   const MealRecordPage({super.key});
@@ -17,6 +18,10 @@ class _MealRecordPageState extends State<MealRecordPage> {
   final proteinController = TextEditingController();
   final fatController = TextEditingController();
 
+  final MealRecordService _mealRecordService = MealRecordService();
+
+  bool isLoading = false;
+
   @override
   void dispose() {
     descriptionController.dispose();
@@ -27,7 +32,7 @@ class _MealRecordPageState extends State<MealRecordPage> {
     super.dispose();
   }
 
-  void _saveMeal() {
+  Future<void> _saveMeal() async {
     final now = DateTime.now();
     final date =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -37,9 +42,12 @@ class _MealRecordPageState extends State<MealRecordPage> {
     final protein = double.tryParse(proteinController.text.trim()) ?? 0;
     final fat = double.tryParse(fatController.text.trim()) ?? 0;
 
-    AppState.mealRecords.insert(
-      0,
-      MealRecordItem(
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      await _mealRecordService.saveMealRecord(
         date: date,
         mealType: selectedMealType,
         description: descriptionController.text.trim(),
@@ -47,16 +55,44 @@ class _MealRecordPageState extends State<MealRecordPage> {
         carbs: carbs,
         protein: protein,
         fat: fat,
-      ),
-    );
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('식단 기록이 저장되었습니다.'),
-      ),
-    );
+      AppState.mealRecords.insert(
+        0,
+        MealRecordItem(
+          date: date,
+          mealType: selectedMealType,
+          description: descriptionController.text.trim(),
+          calories: calories,
+          carbs: carbs,
+          protein: protein,
+          fat: fat,
+        ),
+      );
 
-    Navigator.pop(context);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('식단 기록이 저장되었습니다.'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } on Exception catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('식단 기록 저장 실패: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Widget _buildField({
@@ -151,8 +187,8 @@ class _MealRecordPageState extends State<MealRecordPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _saveMeal,
-              child: const Text('저장'),
+              onPressed: isLoading ? null : _saveMeal,
+              child: Text(isLoading ? '저장 중...' : '저장'),
             ),
           ],
         ),
