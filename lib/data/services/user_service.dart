@@ -23,4 +23,39 @@ class UserService {
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
+
+  Future<UserProfileModel?> getUserProfile() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('로그인된 사용자가 없습니다.');
+    }
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+
+    if (!doc.exists) {
+      return null;
+    }
+
+    final data = doc.data()!;
+
+    return UserProfileModel(
+      name: data['name']?.toString() ?? '사용자',
+      gender: data['gender']?.toString() ?? '남성',
+      height: (data['height'] ?? 0).toDouble(),
+      startWeight: (data['startWeight'] ?? 0).toDouble(),
+      goalWeight: (data['goalWeight'] ?? 0).toDouble(),
+    );
+  }
+
+  Future<bool> hasUserProfile() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return false;
+    }
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    return doc.exists;
+  }
 }

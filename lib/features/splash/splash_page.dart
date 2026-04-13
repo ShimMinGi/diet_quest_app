@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/core/router/app_router.dart';
+import 'package:diet_quest_app/data/services/user_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -11,6 +12,8 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  final UserService _userService = UserService();
+
   @override
   void initState() {
     super.initState();
@@ -18,13 +21,22 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void _moveNext() {
-    Timer(const Duration(seconds: 2), () {
+    Timer(const Duration(seconds: 2), () async {
       if (!mounted) return;
 
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
         Navigator.pushReplacementNamed(context, AppRouter.login);
+        return;
+      }
+
+      final hasProfile = await _userService.hasUserProfile();
+
+      if (!mounted) return;
+
+      if (hasProfile) {
+        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
       } else {
         Navigator.pushReplacementNamed(context, AppRouter.onboarding);
       }

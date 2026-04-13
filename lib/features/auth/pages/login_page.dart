@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:diet_quest_app/core/router/app_router.dart';
 import 'package:diet_quest_app/data/services/auth_service.dart';
+import 'package:diet_quest_app/data/services/user_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
 
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   bool isLoading = false;
 
@@ -45,9 +47,15 @@ class _LoginPageState extends State<LoginPage> {
         password: password,
       );
 
+      final hasProfile = await _userService.hasUserProfile();
+
       if (!mounted) return;
 
-      Navigator.pushReplacementNamed(context, AppRouter.onboarding);
+      if (hasProfile) {
+        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRouter.onboarding);
+      }
     } on Exception catch (e) {
       if (!mounted) return;
 
