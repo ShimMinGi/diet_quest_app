@@ -58,11 +58,19 @@ class _DashboardPageState extends State<DashboardPage> {
   }) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Row(
           children: [
-            Icon(icon, size: 32, color: Colors.green),
-            const SizedBox(width: 16),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: const Color(0xFF2E7D32)),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.black54,
                     ),
                   ),
@@ -78,7 +86,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     value,
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 21,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -94,15 +102,54 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildActionButton(
     BuildContext context, {
     required String label,
+    required String subtitle,
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: const Color(0xFF2E7D32)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -135,7 +182,6 @@ class _DashboardPageState extends State<DashboardPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('대시보드'),
-                  centerTitle: true,
                 ),
                 body: Center(
                   child: Text('프로필 불러오기 실패: ${profileSnapshot.error}'),
@@ -147,7 +193,6 @@ class _DashboardPageState extends State<DashboardPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('대시보드'),
-                  centerTitle: true,
                 ),
                 body: Center(
                   child: Text('대시보드 데이터 불러오기 실패: ${summarySnapshot.error}'),
@@ -181,7 +226,6 @@ class _DashboardPageState extends State<DashboardPage> {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('대시보드'),
-                centerTitle: true,
                 actions: [
                   IconButton(
                     onPressed: () async {
@@ -191,104 +235,188 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      '$userName의 Diet Quest',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(22),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF66BB6A),
+                                  Color(0xFF43A047),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$userName의 Diet Quest',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  '오늘도 한 칸 전진해볼까요?',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.16),
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '퀘스트 진행도',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(999),
+                                        child: LinearProgressIndicator(
+                                          value: progressValue,
+                                          minHeight: 12,
+                                          backgroundColor: Colors.white24,
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<Color>(
+                                            Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${(progressValue * 100).toStringAsFixed(0)}% 진행',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          GridView.count(
+                            crossAxisCount:
+                                MediaQuery.of(context).size.width > 700 ? 2 : 1,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 3.2,
+                            children: [
+                              _buildInfoCard(
+                                title: '현재 체중',
+                                value: '${_formatDouble(currentWeight)} kg',
+                                icon: Icons.monitor_weight,
+                              ),
+                              _buildInfoCard(
+                                title: '목표 체중',
+                                value: '${_formatDouble(goalWeight)} kg',
+                                icon: Icons.flag,
+                              ),
+                              _buildInfoCard(
+                                title: '성별 / 키',
+                                value:
+                                    '${profile?.gender ?? '남성'} / ${_formatDouble(profile?.height ?? 0)} cm',
+                                icon: Icons.person,
+                              ),
+                              _buildInfoCard(
+                                title: '일일 기록 개수',
+                                value: '${summary.dailyRecordCount}개',
+                                icon: Icons.edit_note,
+                              ),
+                              _buildInfoCard(
+                                title: '식단 기록 개수',
+                                value: '${summary.mealRecordCount}개',
+                                icon: Icons.restaurant_menu,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          const Text(
+                            '바로가기',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _buildActionButton(
+                            context,
+                            label: '일일 기록 입력',
+                            subtitle: '오늘의 체중과 칼로리를 기록하세요',
+                            icon: Icons.edit_note,
+                            onPressed: () async {
+                              await Navigator.pushNamed(
+                                context,
+                                AppRouter.dailyRecord,
+                              );
+                              if (!mounted) return;
+                              await _refreshDashboard();
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _buildActionButton(
+                            context,
+                            label: '식단 기록 입력',
+                            subtitle: '식사 종류와 영양 정보를 남겨보세요',
+                            icon: Icons.restaurant_menu,
+                            onPressed: () async {
+                              await Navigator.pushNamed(
+                                context,
+                                AppRouter.mealRecord,
+                              );
+                              if (!mounted) return;
+                              await _refreshDashboard();
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _buildActionButton(
+                            context,
+                            label: '기록 보기',
+                            subtitle: '저장한 일일 기록과 식단 기록을 확인하세요',
+                            icon: Icons.list_alt,
+                            onPressed: () async {
+                              await Navigator.pushNamed(
+                                context,
+                                AppRouter.records,
+                              );
+                              if (!mounted) return;
+                              await _refreshDashboard();
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '오늘도 한 칸 전진해볼까요?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildInfoCard(
-                      title: '현재 체중',
-                      value: '${_formatDouble(currentWeight)} kg',
-                      icon: Icons.monitor_weight,
-                    ),
-                    _buildInfoCard(
-                      title: '목표 체중',
-                      value: '${_formatDouble(goalWeight)} kg',
-                      icon: Icons.flag,
-                    ),
-                    _buildInfoCard(
-                      title: '성별 / 키',
-                      value:
-                          '${profile?.gender ?? '남성'} / ${_formatDouble(profile?.height ?? 0)} cm',
-                      icon: Icons.person,
-                    ),
-                    _buildInfoCard(
-                      title: '일일 기록 개수',
-                      value: '${summary.dailyRecordCount}개',
-                      icon: Icons.edit_note,
-                    ),
-                    _buildInfoCard(
-                      title: '식단 기록 개수',
-                      value: '${summary.mealRecordCount}개',
-                      icon: Icons.restaurant_menu,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '퀘스트 진행도',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: LinearProgressIndicator(
-                        value: progressValue,
-                        minHeight: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildActionButton(
-                      context,
-                      label: '일일 기록 입력',
-                      icon: Icons.edit_note,
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, AppRouter.dailyRecord);
-                        if (!mounted) return;
-                        await _refreshDashboard();
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActionButton(
-                      context,
-                      label: '식단 기록 입력',
-                      icon: Icons.restaurant_menu,
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, AppRouter.mealRecord);
-                        if (!mounted) return;
-                        await _refreshDashboard();
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActionButton(
-                      context,
-                      label: '기록 보기',
-                      icon: Icons.list_alt,
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, AppRouter.records);
-                        if (!mounted) return;
-                        await _refreshDashboard();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
             );

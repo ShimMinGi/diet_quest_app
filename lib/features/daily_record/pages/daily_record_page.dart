@@ -98,13 +98,24 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
   Widget _buildNumberField({
     required String label,
     required TextEditingController controller,
+    required IconData icon,
   }) {
     return TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
+        prefixIcon: Icon(icon),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -112,66 +123,133 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
+    final dateText =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('일일 기록'),
-        centerTitle: true,
+        title: const Text('일일 기록 입력'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '날짜: ${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF66BB6A),
+                          Color(0xFF43A047),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '오늘의 기록',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          dateText,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildSectionTitle('기본 기록'),
+                          const SizedBox(height: 20),
+                          _buildNumberField(
+                            label: '오늘 체중 (kg)',
+                            controller: weightController,
+                            icon: Icons.monitor_weight_outlined,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildNumberField(
+                            label: '총 섭취 칼로리',
+                            controller: calorieController,
+                            icon: Icons.local_fire_department_outlined,
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            value: isPeriod,
+                            onChanged: (value) {
+                              setState(() {
+                                isPeriod = value;
+                              });
+                            },
+                            title: const Text('생리 여부'),
+                            subtitle: const Text('해당 시 활성화하세요'),
+                            secondary: const Icon(Icons.favorite_border),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildSectionTitle('신체 치수'),
+                          const SizedBox(height: 20),
+                          _buildNumberField(
+                            label: '허리 둘레',
+                            controller: waistController,
+                            icon: Icons.straighten,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildNumberField(
+                            label: '팔 둘레',
+                            controller: armController,
+                            icon: Icons.fitness_center,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildNumberField(
+                            label: '허벅지 둘레',
+                            controller: thighController,
+                            icon: Icons.directions_walk,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _saveRecord,
+                    child: Text(isLoading ? '저장 중...' : '저장'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            _buildNumberField(
-              label: '오늘 체중 (kg)',
-              controller: weightController,
-            ),
-            const SizedBox(height: 16),
-            _buildNumberField(
-              label: '허리 둘레',
-              controller: waistController,
-            ),
-            const SizedBox(height: 16),
-            _buildNumberField(
-              label: '팔 둘레',
-              controller: armController,
-            ),
-            const SizedBox(height: 16),
-            _buildNumberField(
-              label: '허벅지 둘레',
-              controller: thighController,
-            ),
-            const SizedBox(height: 16),
-            _buildNumberField(
-              label: '총 섭취 칼로리',
-              controller: calorieController,
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              value: isPeriod,
-              onChanged: (value) {
-                setState(() {
-                  isPeriod = value;
-                });
-              },
-              title: const Text('생리 여부'),
-              contentPadding: EdgeInsets.zero,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: isLoading ? null : _saveRecord,
-              child: Text(isLoading ? '저장 중...' : '저장'),
-            ),
-          ],
+          ),
         ),
       ),
     );

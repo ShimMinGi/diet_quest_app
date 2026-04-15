@@ -32,6 +32,52 @@ class _RecordsPageState extends State<RecordsPage>
     super.dispose();
   }
 
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFF2E7D32)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDailyRecordsTab() {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _dailyRecordsFuture,
@@ -59,35 +105,104 @@ class _RecordsPageState extends State<RecordsPage>
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: records.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final record = records[index];
+        return Column(
+          children: [
+            _buildSectionHeader(
+              icon: Icons.calendar_month,
+              title: '일일 기록',
+              subtitle: '체중, 칼로리, 둘레 기록을 확인하세요',
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                itemCount: records.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final record = records[index];
 
-            final date = record['date']?.toString() ?? '-';
-            final weight = record['weight']?.toString() ?? '0';
-            final calories = record['calories']?.toString() ?? '0';
+                  final date = record['date']?.toString() ?? '-';
+                  final weight = record['weight']?.toString() ?? '0';
+                  final calories = record['calories']?.toString() ?? '0';
+                  final isPeriod = record['isPeriod'] == true;
 
-            return Card(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_month),
-                title: Text(date),
-                subtitle: Text('체중: $weight kg / 칼로리: $calories kcal'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DailyRecordDetailPage(record: record),
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DailyRecordDetailPage(record: record),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.edit_note,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          date,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      if (isPeriod)
+                                        const Icon(
+                                          Icons.favorite,
+                                          color: Colors.pink,
+                                          size: 18,
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '체중: $weight kg',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '칼로리: $calories kcal',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );
@@ -120,35 +235,94 @@ class _RecordsPageState extends State<RecordsPage>
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: records.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final record = records[index];
+        return Column(
+          children: [
+            _buildSectionHeader(
+              icon: Icons.restaurant_menu,
+              title: '식단 기록',
+              subtitle: '식사 종류와 영양 정보를 확인하세요',
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                itemCount: records.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final record = records[index];
 
-            final date = record['date']?.toString() ?? '-';
-            final mealType = record['mealType']?.toString() ?? '-';
-            final calories = record['calories']?.toString() ?? '0';
+                  final date = record['date']?.toString() ?? '-';
+                  final mealType = record['mealType']?.toString() ?? '-';
+                  final calories = record['calories']?.toString() ?? '0';
+                  final description = record['description']?.toString() ?? '-';
 
-            return Card(
-              child: ListTile(
-                leading: const Icon(Icons.restaurant_menu),
-                title: Text('$date - $mealType'),
-                subtitle: Text('칼로리: $calories kcal'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          MealRecordDetailPage(record: record),
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                MealRecordDetailPage(record: record),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.restaurant,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$date · $mealType',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '칼로리: $calories kcal',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );
@@ -159,9 +333,12 @@ class _RecordsPageState extends State<RecordsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('기록 보기'),
-        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: const Color(0xFF2E7D32),
+          unselectedLabelColor: Colors.black54,
+          indicatorColor: const Color(0xFF2E7D32),
+          indicatorWeight: 3,
           tabs: const [
             Tab(text: '일일 기록'),
             Tab(text: '식단 기록'),
