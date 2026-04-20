@@ -20,6 +20,7 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
 
   bool isPeriod = false;
   bool isLoading = false;
+  DateTime selectedDate = DateTime.now();
 
   @override
   void dispose() {
@@ -31,16 +32,74 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
     super.dispose();
   }
 
-  Future<void> _saveRecord() async {
-    final weight = double.tryParse(weightController.text.trim()) ?? 0;
-    final calories = double.tryParse(calorieController.text.trim()) ?? 0;
-    final waist = double.tryParse(waistController.text.trim());
-    final arm = double.tryParse(armController.text.trim());
-    final thigh = double.tryParse(thighController.text.trim());
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
 
-    final now = DateTime.now();
-    final date =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      selectedDate = picked;
+    });
+  }
+
+  Future<void> _saveRecord() async {
+    final weight = double.tryParse(weightController.text.trim());
+    final calories = double.tryParse(calorieController.text.trim());
+    final waist = waistController.text.trim().isEmpty
+        ? null
+        : double.tryParse(waistController.text.trim());
+    final arm = armController.text.trim().isEmpty
+        ? null
+        : double.tryParse(armController.text.trim());
+    final thigh = thighController.text.trim().isEmpty
+        ? null
+        : double.tryParse(thighController.text.trim());
+
+    if (weight == null || weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 체중을 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (calories == null || calories < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 칼로리를 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (waist != null && waist < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('허리 둘레는 0 이상이어야 합니다.')),
+      );
+      return;
+    }
+
+    if (arm != null && arm < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('팔 둘레는 0 이상이어야 합니다.')),
+      );
+      return;
+    }
+
+    if (thigh != null && thigh < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('허벅지 둘레는 0 이상이어야 합니다.')),
+      );
+      return;
+    }
+
+    final date = _formatDate(selectedDate);
 
     try {
       setState(() {
@@ -122,9 +181,7 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final dateText =
-        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final dateText = _formatDate(selectedDate);
 
     return Scaffold(
       appBar: AppBar(
@@ -164,11 +221,37 @@ class _DailyRecordPageState extends State<DailyRecordPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          dateText,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.white70,
+                        InkWell(
+                          onTap: _pickDate,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.calendar_month,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  dateText,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

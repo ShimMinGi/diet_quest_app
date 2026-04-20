@@ -32,12 +32,47 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _completeOnboarding() async {
     final name = nameController.text.trim();
-    final height = double.tryParse(heightController.text.trim()) ?? 0;
-    final startWeight = double.tryParse(startWeightController.text.trim()) ?? 0;
-    final goalWeight = double.tryParse(goalWeightController.text.trim()) ?? 0;
+    final height = double.tryParse(heightController.text.trim());
+    final startWeight = double.tryParse(startWeightController.text.trim());
+    final goalWeight = double.tryParse(goalWeightController.text.trim());
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이름을 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (height == null || height <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 키를 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (startWeight == null || startWeight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 시작 체중을 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (goalWeight == null || goalWeight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 목표 체중을 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (goalWeight >= startWeight) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('목표 체중은 시작 체중보다 작아야 합니다.')),
+      );
+      return;
+    }
 
     final userProfile = UserProfileModel(
-      name: name.isEmpty ? '사용자' : name,
+      name: name,
       gender: selectedGender,
       height: height,
       startWeight: startWeight,
@@ -73,9 +108,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  Widget _buildSectionTitle(String text) {
+  Widget _buildSectionTitle(String title) {
     return Text(
-      text,
+      title,
       style: const TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,

@@ -1,35 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:diet_quest_app/data/services/app_state.dart';
-import 'package:diet_quest_app/data/services/meal_record_service.dart';
+import 'package:diet_quest_app/data/services/daily_record_service.dart';
 
-class MealRecordPage extends StatefulWidget {
-  const MealRecordPage({super.key});
+class EditDailyRecordPage extends StatefulWidget {
+  final Map<String, dynamic> record;
+
+  const EditDailyRecordPage({
+    super.key,
+    required this.record,
+  });
 
   @override
-  State<MealRecordPage> createState() => _MealRecordPageState();
+  State<EditDailyRecordPage> createState() => _EditDailyRecordPageState();
 }
 
-class _MealRecordPageState extends State<MealRecordPage> {
-  String selectedMealType = '아침';
+class _EditDailyRecordPageState extends State<EditDailyRecordPage> {
+  final weightController = TextEditingController();
+  final waistController = TextEditingController();
+  final armController = TextEditingController();
+  final thighController = TextEditingController();
+  final calorieController = TextEditingController();
 
-  final descriptionController = TextEditingController();
-  final caloriesController = TextEditingController();
-  final carbsController = TextEditingController();
-  final proteinController = TextEditingController();
-  final fatController = TextEditingController();
+  final DailyRecordService _dailyRecordService = DailyRecordService();
 
-  final MealRecordService _mealRecordService = MealRecordService();
-
+  bool isPeriod = false;
   bool isLoading = false;
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+
+    weightController.text = widget.record['weight']?.toString() ?? '';
+    waistController.text = widget.record['waist']?.toString() ?? '';
+    armController.text = widget.record['arm']?.toString() ?? '';
+    thighController.text = widget.record['thigh']?.toString() ?? '';
+    calorieController.text = widget.record['calories']?.toString() ?? '';
+    isPeriod = widget.record['isPeriod'] == true;
+
+    final dateString = widget.record['date']?.toString();
+    if (dateString != null && dateString.contains('-')) {
+      final parts = dateString.split('-');
+      selectedDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } else {
+      selectedDate = DateTime.now();
+    }
+  }
 
   @override
   void dispose() {
-    descriptionController.dispose();
-    caloriesController.dispose();
-    carbsController.dispose();
-    proteinController.dispose();
-    fatController.dispose();
+    weightController.dispose();
+    waistController.dispose();
+    armController.dispose();
+    thighController.dispose();
+    calorieController.dispose();
     super.dispose();
   }
 
@@ -52,22 +79,30 @@ class _MealRecordPageState extends State<MealRecordPage> {
     });
   }
 
-  Future<void> _saveMeal() async {
-    final description = descriptionController.text.trim();
-    final calories = double.tryParse(caloriesController.text.trim());
-    final carbs = carbsController.text.trim().isEmpty
-        ? 0.0
-        : (double.tryParse(carbsController.text.trim()) ?? -1);
-    final protein = proteinController.text.trim().isEmpty
-        ? 0.0
-        : (double.tryParse(proteinController.text.trim()) ?? -1);
-    final fat = fatController.text.trim().isEmpty
-        ? 0.0
-        : (double.tryParse(fatController.text.trim()) ?? -1);
+  Future<void> _updateRecord() async {
+    final recordId = widget.record['id']?.toString();
+    final weight = double.tryParse(weightController.text.trim());
+    final calories = double.tryParse(calorieController.text.trim());
+    final waist = waistController.text.trim().isEmpty
+        ? null
+        : double.tryParse(waistController.text.trim());
+    final arm = armController.text.trim().isEmpty
+        ? null
+        : double.tryParse(armController.text.trim());
+    final thigh = thighController.text.trim().isEmpty
+        ? null
+        : double.tryParse(thighController.text.trim());
 
-    if (description.isEmpty) {
+    if (recordId == null || recordId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('식단 설명을 입력해주세요.')),
+        const SnackBar(content: Text('기록 ID를 찾을 수 없습니다.')),
+      );
+      return;
+    }
+
+    if (weight == null || weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 체중을 입력해주세요.')),
       );
       return;
     }
@@ -79,73 +114,55 @@ class _MealRecordPageState extends State<MealRecordPage> {
       return;
     }
 
-    if (carbs < 0) {
+    if (waist != null && waist < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('탄수화물은 0 이상이어야 합니다.')),
+        const SnackBar(content: Text('허리 둘레는 0 이상이어야 합니다.')),
       );
       return;
     }
 
-    if (protein < 0) {
+    if (arm != null && arm < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('단백질은 0 이상이어야 합니다.')),
+        const SnackBar(content: Text('팔 둘레는 0 이상이어야 합니다.')),
       );
       return;
     }
 
-    if (fat < 0) {
+    if (thigh != null && thigh < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('지방은 0 이상이어야 합니다.')),
+        const SnackBar(content: Text('허벅지 둘레는 0 이상이어야 합니다.')),
       );
       return;
     }
-
-    final date = _formatDate(selectedDate);
 
     try {
       setState(() {
         isLoading = true;
       });
 
-      await _mealRecordService.saveMealRecord(
-        date: date,
-        mealType: selectedMealType,
-        description: description,
+      await _dailyRecordService.updateDailyRecord(
+        recordId: recordId,
+        date: _formatDate(selectedDate),
+        weight: weight,
         calories: calories,
-        carbs: carbs,
-        protein: protein,
-        fat: fat,
-      );
-
-      AppState.mealRecords.insert(
-        0,
-        MealRecordItem(
-          date: date,
-          mealType: selectedMealType,
-          description: description,
-          calories: calories,
-          carbs: carbs,
-          protein: protein,
-          fat: fat,
-        ),
+        waist: waist,
+        arm: arm,
+        thigh: thigh,
+        isPeriod: isPeriod,
       );
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('식단 기록이 저장되었습니다.'),
-        ),
+        const SnackBar(content: Text('일일 기록이 수정되었습니다.')),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } on Exception catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('식단 기록 저장 실패: $e'),
-        ),
+        SnackBar(content: Text('일일 기록 수정 실패: $e')),
       );
     } finally {
       if (!mounted) return;
@@ -155,17 +172,14 @@ class _MealRecordPageState extends State<MealRecordPage> {
     }
   }
 
-  Widget _buildField({
+  Widget _buildNumberField({
     required String label,
     required TextEditingController controller,
     required IconData icon,
-    TextInputType? keyboardType,
-    int maxLines = 1,
   }) {
     return TextField(
       controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
@@ -185,21 +199,11 @@ class _MealRecordPageState extends State<MealRecordPage> {
 
   @override
   Widget build(BuildContext context) {
-    const mealTypes = [
-      '새벽',
-      '아침',
-      '오전 간식',
-      '점심',
-      '오후 간식',
-      '저녁',
-      '야식',
-    ];
-
     final dateText = _formatDate(selectedDate);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('식단 기록 입력'),
+        title: const Text('일일 기록 수정'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -227,7 +231,7 @@ class _MealRecordPageState extends State<MealRecordPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          '오늘의 식단 기록',
+                          '기록 수정',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -278,44 +282,31 @@ class _MealRecordPageState extends State<MealRecordPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildSectionTitle('기본 정보'),
+                          _buildSectionTitle('기본 기록'),
                           const SizedBox(height: 20),
-                          DropdownButtonFormField<String>(
-                            initialValue: selectedMealType,
-                            items: mealTypes
-                                .map(
-                                  (type) => DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type),
-                                  ),
-                                )
-                                .toList(),
+                          _buildNumberField(
+                            label: '오늘 체중 (kg)',
+                            controller: weightController,
+                            icon: Icons.monitor_weight_outlined,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildNumberField(
+                            label: '총 섭취 칼로리',
+                            controller: calorieController,
+                            icon: Icons.local_fire_department_outlined,
+                          ),
+                          const SizedBox(height: 16),
+                          SwitchListTile(
+                            value: isPeriod,
                             onChanged: (value) {
-                              if (value == null) return;
                               setState(() {
-                                selectedMealType = value;
+                                isPeriod = value;
                               });
                             },
-                            decoration: const InputDecoration(
-                              labelText: '식사 종류',
-                              prefixIcon: Icon(Icons.restaurant_menu),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildField(
-                            label: '식단 설명',
-                            controller: descriptionController,
-                            icon: Icons.notes,
-                            maxLines: 3,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildField(
-                            label: '칼로리',
-                            controller: caloriesController,
-                            icon: Icons.local_fire_department_outlined,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            title: const Text('생리 여부'),
+                            subtitle: const Text('해당 시 활성화하세요'),
+                            secondary: const Icon(Icons.favorite_border),
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ],
                       ),
@@ -328,42 +319,34 @@ class _MealRecordPageState extends State<MealRecordPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildSectionTitle('영양 정보'),
+                          _buildSectionTitle('신체 치수'),
                           const SizedBox(height: 20),
-                          _buildField(
-                            label: '탄수화물 (g)',
-                            controller: carbsController,
-                            icon: Icons.rice_bowl,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                          _buildNumberField(
+                            label: '허리 둘레',
+                            controller: waistController,
+                            icon: Icons.straighten,
                           ),
                           const SizedBox(height: 16),
-                          _buildField(
-                            label: '단백질 (g)',
-                            controller: proteinController,
-                            icon: Icons.egg_alt,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                          _buildNumberField(
+                            label: '팔 둘레',
+                            controller: armController,
+                            icon: Icons.fitness_center,
                           ),
                           const SizedBox(height: 16),
-                          _buildField(
-                            label: '지방 (g)',
-                            controller: fatController,
-                            icon: Icons.opacity,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                          _buildNumberField(
+                            label: '허벅지 둘레',
+                            controller: thighController,
+                            icon: Icons.directions_walk,
                           ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: isLoading ? null : _saveMeal,
-                    child: Text(isLoading ? '저장 중...' : '저장'),
+                  ElevatedButton.icon(
+                    onPressed: isLoading ? null : _updateRecord,
+                    icon: const Icon(Icons.save),
+                    label: Text(isLoading ? '수정 중...' : '수정 완료'),
                   ),
                 ],
               ),

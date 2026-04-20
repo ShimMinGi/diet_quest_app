@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:diet_quest_app/features/records/pages/edit_meal_record_page.dart';
 
 class MealRecordDetailPage extends StatelessWidget {
   final Map<String, dynamic> record;
@@ -154,6 +155,24 @@ class MealRecordDetailPage extends StatelessWidget {
                     label: '지방',
                     value: _displayValue(fat, suffix: ' g'),
                     icon: Icons.opacity,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final updated = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditMealRecordPage(record: record),
+                        ),
+                      );
+
+                      if (updated == true && context.mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('수정'),
                   ),
                 ],
               ),

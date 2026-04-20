@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:diet_quest_app/features/records/pages/edit_daily_record_page.dart';
 
 class DailyRecordDetailPage extends StatelessWidget {
   final Map<String, dynamic> record;
@@ -154,6 +155,24 @@ class DailyRecordDetailPage extends StatelessWidget {
                     label: '생리 여부',
                     value: isPeriod ? '예' : '아니오',
                     icon: Icons.favorite,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final updated = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditDailyRecordPage(record: record),
+                        ),
+                      );
+
+                      if (updated == true && context.mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('수정'),
                   ),
                 ],
               ),

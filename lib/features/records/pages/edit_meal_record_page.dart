@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:diet_quest_app/data/services/app_state.dart';
 import 'package:diet_quest_app/data/services/meal_record_service.dart';
 
-class MealRecordPage extends StatefulWidget {
-  const MealRecordPage({super.key});
+class EditMealRecordPage extends StatefulWidget {
+  final Map<String, dynamic> record;
+
+  const EditMealRecordPage({
+    super.key,
+    required this.record,
+  });
 
   @override
-  State<MealRecordPage> createState() => _MealRecordPageState();
+  State<EditMealRecordPage> createState() => _EditMealRecordPageState();
 }
 
-class _MealRecordPageState extends State<MealRecordPage> {
+class _EditMealRecordPageState extends State<EditMealRecordPage> {
   String selectedMealType = '아침';
 
   final descriptionController = TextEditingController();
@@ -21,7 +25,31 @@ class _MealRecordPageState extends State<MealRecordPage> {
   final MealRecordService _mealRecordService = MealRecordService();
 
   bool isLoading = false;
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+
+    selectedMealType = widget.record['mealType']?.toString() ?? '아침';
+    descriptionController.text = widget.record['description']?.toString() ?? '';
+    caloriesController.text = widget.record['calories']?.toString() ?? '';
+    carbsController.text = widget.record['carbs']?.toString() ?? '';
+    proteinController.text = widget.record['protein']?.toString() ?? '';
+    fatController.text = widget.record['fat']?.toString() ?? '';
+
+    final dateString = widget.record['date']?.toString();
+    if (dateString != null && dateString.contains('-')) {
+      final parts = dateString.split('-');
+      selectedDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } else {
+      selectedDate = DateTime.now();
+    }
+  }
 
   @override
   void dispose() {
@@ -52,7 +80,8 @@ class _MealRecordPageState extends State<MealRecordPage> {
     });
   }
 
-  Future<void> _saveMeal() async {
+  Future<void> _updateMeal() async {
+    final recordId = widget.record['id']?.toString();
     final description = descriptionController.text.trim();
     final calories = double.tryParse(caloriesController.text.trim());
     final carbs = carbsController.text.trim().isEmpty
@@ -64,6 +93,13 @@ class _MealRecordPageState extends State<MealRecordPage> {
     final fat = fatController.text.trim().isEmpty
         ? 0.0
         : (double.tryParse(fatController.text.trim()) ?? -1);
+
+    if (recordId == null || recordId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('기록 ID를 찾을 수 없습니다.')),
+      );
+      return;
+    }
 
     if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,15 +136,14 @@ class _MealRecordPageState extends State<MealRecordPage> {
       return;
     }
 
-    final date = _formatDate(selectedDate);
-
     try {
       setState(() {
         isLoading = true;
       });
 
-      await _mealRecordService.saveMealRecord(
-        date: date,
+      await _mealRecordService.updateMealRecord(
+        recordId: recordId,
+        date: _formatDate(selectedDate),
         mealType: selectedMealType,
         description: description,
         calories: calories,
@@ -117,35 +152,18 @@ class _MealRecordPageState extends State<MealRecordPage> {
         fat: fat,
       );
 
-      AppState.mealRecords.insert(
-        0,
-        MealRecordItem(
-          date: date,
-          mealType: selectedMealType,
-          description: description,
-          calories: calories,
-          carbs: carbs,
-          protein: protein,
-          fat: fat,
-        ),
-      );
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('식단 기록이 저장되었습니다.'),
-        ),
+        const SnackBar(content: Text('식단 기록이 수정되었습니다.')),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } on Exception catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('식단 기록 저장 실패: $e'),
-        ),
+        SnackBar(content: Text('식단 기록 수정 실패: $e')),
       );
     } finally {
       if (!mounted) return;
@@ -199,7 +217,7 @@ class _MealRecordPageState extends State<MealRecordPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('식단 기록 입력'),
+        title: const Text('식단 기록 수정'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -227,7 +245,7 @@ class _MealRecordPageState extends State<MealRecordPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          '오늘의 식단 기록',
+                          '식단 기록 수정',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -361,9 +379,10 @@ class _MealRecordPageState extends State<MealRecordPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: isLoading ? null : _saveMeal,
-                    child: Text(isLoading ? '저장 중...' : '저장'),
+                  ElevatedButton.icon(
+                    onPressed: isLoading ? null : _updateMeal,
+                    icon: const Icon(Icons.save),
+                    label: Text(isLoading ? '수정 중...' : '수정 완료'),
                   ),
                 ],
               ),
