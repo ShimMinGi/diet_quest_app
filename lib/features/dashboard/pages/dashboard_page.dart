@@ -228,6 +228,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 title: const Text('대시보드'),
                 actions: [
                   IconButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRouter.settings);
+                    },
+                    icon: const Icon(Icons.settings),
+                  ),
+                  IconButton(
                     onPressed: () async {
                       await AppStateLogoutHelper.signOut(context);
                     },
